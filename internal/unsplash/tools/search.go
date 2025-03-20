@@ -58,17 +58,11 @@ func HandleSearchPhotos(cfg *config.Config) func(context.Context, mcp.CallToolRe
 		}
 		params.Add("query", query)
 
-		page := req.Params.Arguments["page"].(int)
-		if page < 1 {
-			page = 1
-		}
-		params.Add("page", strconv.Itoa(page))
+		page := req.Params.Arguments["page"].(float64)
+		params.Add("page", strconv.Itoa(int(page)))
 
-		perPage := req.Params.Arguments["per_page"].(int)
-		if perPage < 1 || perPage > 30 {
-			perPage = 5
-		}
-		params.Add("per_page", strconv.Itoa(perPage))
+		perPage := req.Params.Arguments["per_page"].(float64)
+		params.Add("per_page", strconv.Itoa(int(perPage)))
 
 		orderBy := req.Params.Arguments["order_by"].(string)
 		params.Add("order_by", orderBy)
