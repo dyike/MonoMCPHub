@@ -99,13 +99,6 @@ func (r *adbRepoImpl) TakeScreenshot() error {
 		return err
 	}
 
-	// testCmd := exec.Command("touch", r.localPath("test.png"))
-	// err = testCmd.Run()
-	// if err != nil {
-	// 	err = fmt.Errorf("failed to touch test.png: %w", err)
-	// 	return err
-	// }
-
 	// 拉取截图
 	_, err = r.runAdbCommand("adb", "pull", "/sdcard/screenshot.png", r.localPath("screenshot.png"))
 	if err != nil {
@@ -161,25 +154,28 @@ func (r *adbRepoImpl) GetUILayout() (string, error) {
 	// 使用uiautomator dump UI
 	_, err := r.runAdbCommand("uiautomator dump")
 	if err != nil {
+		err = fmt.Errorf("failed to dump ui layout: %w", err)
 		return "", err
 	}
 
 	// 拉取XML到本地
-	pullCmd := exec.Command("adb", "-s", r.DeviceName, "pull", "/sdcard/window_dump.xml", "window_dump.xml")
-	err = pullCmd.Run()
+	_, err = r.runAdbCommand("adb", "pull", "/sdcard/window_dump.xml", r.localPath("window_dump.xml"))
 	if err != nil {
+		err = fmt.Errorf("failed to pull ui layout: %w", err)
 		return "", err
 	}
 
 	// 删除设备上的文件
-	_, err = r.runAdbCommand("rm /sdcard/window_dump.xml")
+	_, err = r.runAdbCommand("adb", "shell", "rm", "/sdcard/window_dump.xml")
 	if err != nil {
+		err = fmt.Errorf("failed to delete ui layout: %w", err)
 		return "", err
 	}
 
 	// 解析XML
-	file, err := os.Open("window_dump.xml")
+	file, err := os.Open(r.localPath("window_dump.xml"))
 	if err != nil {
+		err = fmt.Errorf("failed to open ui layout: %w", err)
 		return "", err
 	}
 	defer file.Close()
