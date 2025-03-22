@@ -7,6 +7,7 @@ import (
 	"image/png"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -24,11 +25,13 @@ type AdbRepo interface {
 
 type adbRepoImpl struct {
 	DeviceName string
+	WorkDir    string
 }
 
-func NewAdbRepo(deviceName string) AdbRepo {
+func NewAdbRepo(deviceName string, workDir string) AdbRepo {
 	return &adbRepoImpl{
 		DeviceName: deviceName,
+		WorkDir:    workDir,
 	}
 }
 
@@ -92,31 +95,42 @@ func (r *adbRepoImpl) TakeScreenshot() error {
 	// 截屏
 	_, err := r.runAdbCommand("screencap", "-p", "/sdcard/screenshot.png")
 	if err != nil {
+		err = fmt.Errorf("failed to take screenshot: %w", err)
 		return err
 	}
 
+	// testCmd := exec.Command("touch", r.localPath("test.png"))
+	// err = testCmd.Run()
+	// if err != nil {
+	// 	err = fmt.Errorf("failed to touch test.png: %w", err)
+	// 	return err
+	// }
+
 	// 拉取截图
-	pullCmd := exec.Command("adb", "-s", r.DeviceName, "pull", "/sdcard/screenshot.png", "screenshot.png")
-	err = pullCmd.Run()
+	_, err = r.runAdbCommand("adb", "pull", "/sdcard/screenshot.png", r.localPath("screenshot.png"))
 	if err != nil {
+		err = fmt.Errorf("failed to pull screenshot: %w", err)
 		return err
 	}
 
 	// 删除截图
-	_, err = r.runAdbCommand("shell", "rm", "/sdcard/screenshot.png")
+	_, err = r.runAdbCommand("adb", "shell", "rm", "/sdcard/screenshot.png")
 	if err != nil {
+		err = fmt.Errorf("failed to delete screenshot: %w", err)
 		return err
 	}
 
 	// 压缩截图
-	file, err := os.Open("screenshot.png")
+	file, err := os.Open(r.localPath("screenshot.png"))
 	if err != nil {
+		err = fmt.Errorf("failed to open screenshot: %w", err)
 		return err
 	}
 	defer file.Close()
 
 	img, _, err := image.Decode(file)
 	if err != nil {
+		err = fmt.Errorf("failed to decode screenshot: %w", err)
 		return err
 	}
 
@@ -127,17 +141,18 @@ func (r *adbRepoImpl) TakeScreenshot() error {
 
 	resized := imaging.Resize(img, newWidth, newHeight, imaging.Lanczos)
 
-	outFile, err := os.Create("compressed_screenshot.png")
+	outFile, err := os.Create(r.localPath("compressed_screenshot.png"))
 	if err != nil {
+		err = fmt.Errorf("failed to create compressed screenshot: %w", err)
 		return err
 	}
 	defer outFile.Close()
 
 	err = png.Encode(outFile, resized)
 	if err != nil {
+		err = fmt.Errorf("failed to encode compressed screenshot: %w", err)
 		return err
 	}
-
 	return nil
 }
 
@@ -243,6 +258,10 @@ func (r *adbRepoImpl) runAdbCommand(args ...string) (string, error) {
 		return "", fmt.Errorf("failed to run adb command(%s): %w", cmd.String(), err)
 	}
 	return output.String(), nil
+}
+
+func (r *adbRepoImpl) localPath(fileName string) string {
+	return filepath.Join(r.WorkDir, fileName)
 }
 
 // parseInt 将字符串转换为整数

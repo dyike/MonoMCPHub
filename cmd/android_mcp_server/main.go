@@ -20,10 +20,24 @@ func main() {
 		slog.Error("ANDROID_DEVICE_ID is not set")
 		os.Exit(1)
 	}
-	adbRepo := adb_repo.NewAdbRepo(deviceID)
+	workDir := os.Getenv("ANDROID_WORK_DIR")
+	if workDir == "" {
+		slog.Error("ANDROID_WORK_DIR is not set")
+		os.Exit(1)
+	}
+	adbRepo := adb_repo.NewAdbRepo(deviceID, workDir)
 
-	getPackageTools := tools.NewGetPackagesTool()
-	s.AddTool(getPackageTools, tools.HandleGetPackages(adbRepo))
+	getPackageTool := tools.NewGetPackagesTool()
+	s.AddTool(getPackageTool, tools.HandleGetPackages(adbRepo))
+
+	getScreenshotTool := tools.NewGetScreenshotTool()
+	s.AddTool(getScreenshotTool, tools.HandleGetScreenshot(adbRepo))
+
+	getUILayoutTool := tools.NewGetUILayoutTool()
+	s.AddTool(getUILayoutTool, tools.HandleGetUILayout(adbRepo))
+
+	executeAdbCmdTool := tools.NewExecuteAdbCmdTool()
+	s.AddTool(executeAdbCmdTool, tools.HandleExecuteAdbCmd(adbRepo))
 
 	// getDevicesTool := tools.NewGetDevicesTool()
 	// s.AddTool(getDevicesTool, tools.HandleGetDevices())
