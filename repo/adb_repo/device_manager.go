@@ -16,7 +16,7 @@ import (
 )
 
 type AdbRepo interface {
-	GetPackages() (string, error)
+	GetPackages(packageOption string) (string, error)
 	GetPackageActionIndents(packageName string) ([]string, error)
 	ExecuteAdbCommand(args ...string) (string, error)
 	TakeScreenshot() error
@@ -35,8 +35,11 @@ func NewAdbRepo(deviceName string, workDir string) AdbRepo {
 	}
 }
 
-func (r *adbRepoImpl) GetPackages() (string, error) {
+func (r *adbRepoImpl) GetPackages(packageOption string) (string, error) {
 	args := []string{"pm", "list", "packages"}
+	if packageOption != "" {
+		args = append(args, packageOption)
+	}
 	output, err := r.runAdbCommand(args...)
 	if err != nil {
 		return "", err

@@ -8,7 +8,7 @@ func init() {
 	adbRepo = NewAdbRepo("192.168.5.72:33479", "./")
 }
 func TestGetPackages(t *testing.T) {
-	packages, err := adbRepo.GetPackages()
+	packages, err := adbRepo.GetPackages("")
 	if err != nil {
 		t.Fatalf("Failed to get packages: %v", err)
 	}
