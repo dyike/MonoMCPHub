@@ -1,18 +1,15 @@
 package omniparser
 
 import (
-	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
 	"testing"
-
-	"github.com/dyike/MonoMCPHub/repo/vlm"
 )
 
 func TestParseImage(t *testing.T) {
-	imagePath := "/Users/bytedance/.mcp_tmp/screenshot.png"
+	imagePath := "/Users/ityike/.mcp_tmp/screenshot.png"
 	apiURL := "http://10.37.110.115:8000/process_image"
 
 	resp, err := ProcessImage(imagePath, apiURL, 0.05, 0.1, true, 640)
@@ -21,7 +18,7 @@ func TestParseImage(t *testing.T) {
 	}
 	base64Image := resp.LabeledImage
 
-	debugPath := "/Users/bytedance/.mcp_tmp/debug.png"
+	debugPath := "/Users/ityike/.mcp_tmp/debug.png"
 	debugImage, err := base64.StdEncoding.DecodeString(base64Image)
 	if err != nil {
 		t.Fatalf("base64 解码失败: %v", err)
@@ -37,12 +34,7 @@ func TestParseImage(t *testing.T) {
 	eles := ParseIconData(parsedContent)
 	jsonData, _ := json.Marshal(eles)
 
-	userRequest := "在应用宝中搜索得物APP并下载"
-	resp1, err := vlm.DoubaoVision(context.Background(), base64Image, userRequest, string(jsonData))
-	if err != nil {
-		t.Fatalf("DoubaoVision 失败: %v", err)
-	}
-	fmt.Println(resp1)
+	fmt.Println(string(jsonData))
 }
 
 func TestParseIconData(t *testing.T) {
