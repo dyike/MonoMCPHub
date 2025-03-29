@@ -23,8 +23,8 @@ type Service interface {
 	// ResourceTemplates returns the resource templates of the service
 	ResourceTemplates() map[mcp.ResourceTemplate]server.ResourceTemplateHandlerFunc
 
-	// Notifications returns the notifications of the service
-	Notifications() map[string]server.NotificationHandlerFunc
+	// NotificationHandlers returns the notification handlers of the service
+	NotificationHandlers() map[string]server.NotificationHandlerFunc
 
 	// Config returns the config of the service
 	Config() string
