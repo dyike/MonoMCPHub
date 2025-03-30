@@ -30,13 +30,6 @@ func main() {
 
 	s.AddTools(bs.Tools()...)
 
-	// tools := bs.Tools()
-	// slog.Info("Available tools", "tools count", len(tools))
-
-	// for _, tool := range tools {
-	// 	s.AddTool(tool.Tool, tool.Handler)
-	// }
-
 	if err := server.ServeStdio(s); err != nil {
 		slog.Error("Failed to serve", "error", err)
 		os.Exit(1)

@@ -13,7 +13,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 )
 
-type BrowserSevice struct {
+type BrowserService struct {
 	sv.ServiceManager
 	config *config.BrowserConfig
 	name   string
@@ -23,7 +23,7 @@ type BrowserSevice struct {
 
 func NewBrowserService(ctx context.Context, args []string) (sv.Service, error) {
 	bconf := config.NewBrowserConfig()
-	bs := &BrowserSevice{
+	bs := &BrowserService{
 		ctx:    ctx,
 		config: bconf,
 		name:   "browser_mcp",
@@ -70,10 +70,63 @@ func NewBrowserService(ctx context.Context, args []string) (sv.Service, error) {
 		),
 	), bs.handleScreenshot)
 
+	bs.AddTool(mcp.NewTool(
+		"browser_click",
+		mcp.WithDescription("Click on an element on the page"),
+		mcp.WithString("selector",
+			mcp.Description("The CSS selector of the element to click on"),
+			mcp.Required(),
+		),
+	), bs.handleClick)
+
+	bs.AddTool(mcp.NewTool(
+		"browser_fill",
+		mcp.WithDescription("Fill an input with a value"),
+		mcp.WithString("selector",
+			mcp.Description("The CSS selector of the input to fill"),
+			mcp.Required(),
+		),
+		mcp.WithString("value",
+			mcp.Description("The value to fill the input with"),
+			mcp.Required(),
+		),
+	), bs.handleFill)
+
+	bs.AddTool(mcp.NewTool(
+		"browser_select",
+		mcp.WithDescription("Select an element on the page with selector tag"),
+		mcp.WithString("selector",
+			mcp.Description("The CSS selector for element to select"),
+			mcp.Required(),
+		),
+		mcp.WithString("value",
+			mcp.Description("The value to select"),
+			mcp.Required(),
+		),
+	), bs.handleSelect)
+
+	bs.AddTool(mcp.NewTool(
+		"browser_hover",
+		mcp.WithDescription("Hover over an element on the page"),
+		mcp.WithString("selector",
+			mcp.Description("The CSS selector for element to hover over"),
+			mcp.Required(),
+		),
+	), bs.handleHover)
+
+	bs.AddTool(mcp.NewTool(
+		"browser_evaluate",
+		mcp.WithDescription("Execute a JavaScript in the browser console"),
+		mcp.WithString("script",
+			mcp.Description("The JavaScript code to execute"),
+			mcp.Required(),
+		),
+	), bs.handleEvaluate)
+
 	return bs, nil
 }
 
-func (bs *BrowserSevice) handleNavigate(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func (bs *BrowserService) handleNavigate(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	url, ok := request.Params.Arguments["url"].(string)
 	if !ok {
 		return nil, fmt.Errorf("url must be a string")
@@ -100,7 +153,7 @@ func (bs *BrowserSevice) handleNavigate(ctx context.Context, request mcp.CallToo
 	}, nil
 }
 
-func (bs *BrowserSevice) handleScreenshot(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func (bs *BrowserService) handleScreenshot(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	name, ok := request.Params.Arguments["name"].(string)
 	if !ok {
 		return nil, fmt.Errorf("name must be a string")
@@ -158,20 +211,141 @@ func (bs *BrowserSevice) handleScreenshot(ctx context.Context, request mcp.CallT
 	}, nil
 }
 
-func (bs *BrowserSevice) Close() error {
+func (bs *BrowserService) handleClick(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	selector, ok := request.Params.Arguments["selector"].(string)
+	result := &mcp.CallToolResult{
+		IsError: false,
+	}
+	if !ok {
+		result.IsError = true
+		result.Content = []mcp.Content{
+			mcp.TextContent{
+				Type: "text",
+				Text: "selector must be a string",
+			},
+		}
+		return result, nil
+	}
+	err := chromedp.Run(bs.ctx, chromedp.Click(selector, chromedp.NodeVisible, chromedp.ByQuery))
+	if err != nil {
+		result.IsError = true
+		result.Content = []mcp.Content{
+			mcp.TextContent{
+				Type: "text",
+				Text: fmt.Sprintf("Failed to click on %s: %v", selector, err),
+			},
+		}
+		return result, nil
+	}
+	result.Content = []mcp.Content{
+		mcp.TextContent{
+			Type: "text",
+			Text: fmt.Sprintf("Clicked on %s", selector),
+		},
+	}
+	return result, nil
+}
+
+func (bs *BrowserService) handleFill(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	selector, ok := request.Params.Arguments["selector"].(string)
+	if !ok {
+		return nil, fmt.Errorf("selector must be a string")
+	}
+	value, ok := request.Params.Arguments["value"].(string)
+	if !ok {
+		return nil, fmt.Errorf("value must be a string")
+	}
+	err := chromedp.Run(bs.ctx, chromedp.SendKeys(selector, value, chromedp.NodeVisible, chromedp.ByQuery))
+	if err != nil {
+		return nil, fmt.Errorf("failed to fill %s with %s: %v", selector, value, err)
+	}
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{
+			mcp.TextContent{
+				Type: "text",
+				Text: fmt.Sprintf("Filled input %s with value %s", selector, value),
+			},
+		},
+	}, nil
+}
+
+func (bs *BrowserService) handleSelect(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	selector, ok := request.Params.Arguments["selector"].(string)
+	if !ok {
+		return nil, fmt.Errorf("selector must be a string")
+	}
+	value, ok := request.Params.Arguments["value"].(string)
+	if !ok {
+		return nil, fmt.Errorf("value must be a string")
+	}
+	err := chromedp.Run(bs.ctx, chromedp.SetValue(selector, value, chromedp.NodeVisible, chromedp.ByQuery))
+	if err != nil {
+		return nil, fmt.Errorf("failed to select %s with value %s: %v", selector, value, err)
+	}
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{
+			mcp.TextContent{
+				Type: "text",
+				Text: fmt.Sprintf("Selected %s with value %s", selector, value),
+			},
+		},
+	}, nil
+}
+
+func (bs *BrowserService) handleHover(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	selector, ok := request.Params.Arguments["selector"].(string)
+	if !ok {
+		return nil, fmt.Errorf("selector must be a string")
+	}
+	var res bool
+	err := chromedp.Run(bs.ctx, chromedp.Evaluate(`document.querySelector('`+selector+`').dispatchEvent(new Event('mouseover'))`, &res))
+	if err != nil {
+		return nil, fmt.Errorf("failed to hover over %s: %v", selector, err)
+	}
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{
+			mcp.TextContent{
+				Type: "text",
+				Text: fmt.Sprintf("Hovered over %s, result: %t", selector, res),
+			},
+		},
+	}, nil
+}
+
+func (bs *BrowserService) handleEvaluate(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	script, ok := request.Params.Arguments["script"].(string)
+	if !ok {
+		return nil, fmt.Errorf("script must be a string")
+	}
+	var result interface{}
+	err := chromedp.Run(bs.ctx, chromedp.Evaluate(script, &result))
+	if err != nil {
+		return nil, fmt.Errorf("failed to evaluate %s: %v", script, err)
+	}
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{
+			mcp.TextContent{
+				Type: "text",
+				Text: fmt.Sprintf("Evaluated %s, result: %v", script, result),
+			},
+		},
+	}, nil
+}
+
+func (bs *BrowserService) Close() error {
 	bs.cancel()
 	return nil
 }
 
-func (bs *BrowserSevice) Config() string {
+func (bs *BrowserService) Config() string {
 	return ""
 }
 
-func (bs *BrowserSevice) Name() string {
+func (bs *BrowserService) Name() string {
 	return bs.name
 }
 
-func (bs *BrowserSevice) initBrowser(userDataDir string) error {
+func (bs *BrowserService) initBrowser(userDataDir string) error {
 	_, err := os.Stat(userDataDir)
 	if err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("failed to check user data directory: %v", err)
