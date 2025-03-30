@@ -26,7 +26,7 @@ func NewBrowserService(ctx context.Context, args []string) (sv.Service, error) {
 	bs := &BrowserSevice{
 		ctx:    ctx,
 		config: bconf,
-		name:   "browser_server",
+		name:   "browser_mcp",
 	}
 	bs.ServiceManager = *sv.NewServiceManager(ctx)
 	err := bs.initBrowser(bconf.DataPath)
@@ -47,8 +47,8 @@ func NewBrowserService(ctx context.Context, args []string) (sv.Service, error) {
 		"browser_navigate",
 		mcp.WithDescription("Navigate to a URL"),
 		mcp.WithString("url",
-			mcp.Description("The URL to navigate to"),
 			mcp.Required(),
+			mcp.Description("The URL to navigate to"),
 		),
 	), bs.handleNavigate)
 
@@ -106,8 +106,8 @@ func (bs *BrowserSevice) handleScreenshot(ctx context.Context, request mcp.CallT
 		return nil, fmt.Errorf("name must be a string")
 	}
 	selector, ok := request.Params.Arguments["selector"].(string)
-	width, _ := request.Params.Arguments["width"].(int)
-	height, _ := request.Params.Arguments["height"].(int)
+	width, _ := request.Params.Arguments["width"].(float64)
+	height, _ := request.Params.Arguments["height"].(float64)
 
 	if width == 0 {
 		width = 1600

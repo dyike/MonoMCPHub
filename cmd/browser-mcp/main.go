@@ -10,6 +10,12 @@ import (
 )
 
 func main() {
+	logLevel := slog.LevelDebug
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+		Level: logLevel,
+	})))
+
+	slog.Info("Starting browser mcp server")
 	s := server.NewMCPServer(
 		"browser mcp server",
 		"0.0.1",
@@ -22,9 +28,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	for _, tool := range bs.Tools() {
-		s.AddTool(tool.Tool, tool.Handler)
-	}
+	s.AddTools(bs.Tools()...)
+
+	// tools := bs.Tools()
+	// slog.Info("Available tools", "tools count", len(tools))
+
+	// for _, tool := range tools {
+	// 	s.AddTool(tool.Tool, tool.Handler)
+	// }
 
 	if err := server.ServeStdio(s); err != nil {
 		slog.Error("Failed to serve", "error", err)

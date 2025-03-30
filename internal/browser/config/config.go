@@ -19,6 +19,6 @@ func NewBrowserConfig() *BrowserConfig {
 		DefaultLanguage: "zh-CN",
 		URLTimeout:      30,
 		CSSTimeout:      30,
-		DataPath:        "~/.browser_data",
+		DataPath:        "/Users/ityike/.browser_data",
 	}
 }
