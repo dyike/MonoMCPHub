@@ -6,8 +6,6 @@ require (
 	github.com/PuerkitoBio/goquery v1.10.2
 	github.com/antchfx/xmlquery v1.4.4
 	github.com/chromedp/chromedp v0.13.3
-	github.com/cloudwego/eino v0.3.16
-	github.com/cloudwego/eino-ext/components/model/ark v0.1.3
 	github.com/cloudwego/eino-ext/components/tool/mcp v0.0.0-20250320062631-616205c32186
 	github.com/disintegration/imaging v1.6.2
 	github.com/kkdai/youtube/v2 v2.10.3
@@ -23,6 +21,7 @@ require (
 	github.com/chromedp/cdproto v0.0.0-20250319231242-a755498943c8 // indirect
 	github.com/chromedp/sysutil v1.1.0 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
+	github.com/cloudwego/eino v0.3.16 // indirect
 	github.com/cloudwego/iasm v0.2.0 // indirect
 	github.com/dlclark/regexp2 v1.11.5 // indirect
 	github.com/dop251/goja v0.0.0-20250125213203-5ef83b82af17 // indirect
@@ -40,7 +39,6 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/goph/emperror v0.17.2 // indirect
 	github.com/invopop/yaml v0.1.0 // indirect
-	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
@@ -55,8 +53,6 @@ require (
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/slongfield/pyfmt v0.0.0-20220222012616-ea85ff4c361f // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
-	github.com/volcengine/volc-sdk-golang v1.0.23 // indirect
-	github.com/volcengine/volcengine-go-sdk v1.0.185 // indirect
 	github.com/yargevad/filepathx v1.0.0 // indirect
 	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 	golang.org/x/arch v0.11.0 // indirect
@@ -65,6 +61,7 @@ require (
 	golang.org/x/net v0.35.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
+	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
